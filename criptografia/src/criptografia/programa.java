@@ -7,6 +7,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
+import sun.security.tools.keytool.CertAndKeyGen;
+
+import javax.security.auth.x500.X500Principal;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +25,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -42,6 +48,7 @@ public class programa {
 		boolean salirAES = false;
 		boolean salirDES = false;
 		boolean salirPass = false;
+		boolean salirCertificado = false;
 		int opcion;
 
 		while (!salir) {
@@ -49,8 +56,9 @@ public class programa {
 			System.out.println("1.- Cifrado/descifrado con RSA");
 			System.out.println("2.- Cifrado/descifrado con AES");
 			System.out.println("3.- Cifrado/descifrado con DES");
-			System.out.println("4.- Hash de contraseñas");
-			System.out.println("5.- Salir");
+			System.out.println("4.- Hash de contraseï¿½as");
+			System.out.println("5.- Certificados");
+			System.out.println("6.- Salir");
 
 			try {
 
@@ -87,7 +95,7 @@ public class programa {
 								long startTime = System.currentTimeMillis();
 								cifradoRSA(archivo, clavePublica);
 								long endTime = System.currentTimeMillis() - startTime;
-								System.out.println("Ejecución cifrado RSA: " + endTime);
+								System.out.println("Ejecuciï¿½n cifrado RSA: " + endTime);
 								break;
 							case 3:
 								System.out.print("Introduce el archivo a descifrar: ");
@@ -99,7 +107,7 @@ public class programa {
 								long startTime2 = System.currentTimeMillis();
 								descifradoRSA(archivo2, clavePrivada);
 								long endTime2 = System.currentTimeMillis() - startTime2;
-								System.out.println("Ejecución descifrado RSA: " + endTime2);
+								System.out.println("Ejecuciï¿½n descifrado RSA: " + endTime2);
 								break;
 							case 4:
 								salirRSA = true;
@@ -142,7 +150,7 @@ public class programa {
 								long startTime = System.currentTimeMillis();
 								cifradoAES(archivo, clave);
 								long endTime = System.currentTimeMillis() - startTime;
-								System.out.println("Ejecución cifrado AES: " + endTime);
+								System.out.println("Ejecuciï¿½n cifrado AES: " + endTime);
 								break;
 							case 3:
 								System.out.print("Introduce el archivo a descifrar: ");
@@ -154,7 +162,7 @@ public class programa {
 								long startTime2 = System.currentTimeMillis();
 								descifradoAES(archivo2, clave2);
 								long endTime2 = System.currentTimeMillis() - startTime2;
-								System.out.println("Ejecución descifrado AES: " + endTime2);
+								System.out.println("Ejecuciï¿½n descifrado AES: " + endTime2);
 								break;
 							case 4:
 								salirAES = true;
@@ -198,7 +206,7 @@ public class programa {
 								long startTime = System.currentTimeMillis();
 								cifradoDES(archivo, clavePublica);
 								long endTime = System.currentTimeMillis() - startTime;
-								System.out.println("Ejecución cifrado DES: " + endTime);
+								System.out.println("Ejecuciï¿½n cifrado DES: " + endTime);
 								break;
 							case 3:
 								System.out.print("Introduce el archivo a descifrar: ");
@@ -210,7 +218,7 @@ public class programa {
 								long startTime2 = System.currentTimeMillis();
 								descifradoDES(archivo2, clavePrivada);
 								long endTime2 = System.currentTimeMillis() - startTime2;
-								System.out.println("Ejecución cifrado DES: " + endTime2);
+								System.out.println("Ejecuciï¿½n cifrado DES: " + endTime2);
 								break;
 							case 4:
 								salirDES = true;
@@ -239,14 +247,14 @@ public class programa {
 
 							switch (opcion) {
 							case 1:
-								System.out.print("Introduce la contraseña: ");
+								System.out.print("Introduce la contraseï¿½a: ");
 								String pass = sc.next();
 								System.out.println("Generando hash...");
 								System.out.println("Se ha generado un archivo passMD5.txt con el hash resultante");
 								hashMD5(pass);
 								break;
 							case 2:
-								System.out.print("Introduce la contraseña: ");
+								System.out.print("Introduce la contraseï¿½a: ");
 								String pass2 = sc.next();
 								System.out.println("Generando hash salteado...");
 								System.out.println("Se ha generado un archivo passSaltMD5.txt con el hash resultante");
@@ -254,6 +262,54 @@ public class programa {
 								break;
 							case 3:
 								salirPass = true;
+								break;
+							default:
+								System.out.println("Solo nÃºmeros entre 1 y 3");
+							}
+
+						} catch (InputMismatchException e) {
+							System.out.println("Debes insertar un nÃºmero");
+							sc.next();
+						}
+					}
+					break;
+				case 5:
+					while (!salirCertificado) {
+
+						System.out.println("1.- Generar certificado");
+						System.out.println("2.- Firmar con certificado");
+						System.out.println("3.- Comprobar firma del certificado");
+						System.out.println("4.- Salir");
+
+						try {
+
+							System.out.print("Escribe una de las opciones: ");
+							opcion = sc.nextInt();
+
+							switch (opcion) {
+							case 1:
+								System.out.print("Introduce la contraseï¿½a: ");
+								String pass = sc.next();
+								System.out.println("Generando hash...");
+								System.out.println("Se ha generado un archivo passMD5.txt con el hash resultante");
+								hashMD5(pass);
+								break;
+							case 2:
+								System.out.print("Introduce la contraseï¿½a: ");
+								String pass2 = sc.next();
+								System.out.println("Generando hash salteado...");
+								System.out.println("Se ha generado un archivo passSaltMD5.txt con el hash resultante");
+								saltMD5(pass2);
+								break;
+							case 3:
+								System.out.print("Introduce la contraseï¿½a: ");
+								String pass2 = sc.next();
+								System.out.println("Generando hash salteado...");
+								System.out.println("Se ha generado un archivo passSaltMD5.txt con el hash resultante");
+								saltMD5(pass2);
+								break;
+							case 4:
+								salirCertificado = true;
 								break;
 							default:
 								System.out.println("Solo nÃºmeros entre 1 y 4");
@@ -265,11 +321,11 @@ public class programa {
 						}
 					}
 					break;
-				case 5:
+				case 6:
 					salir = true;
 					break;
 				default:
-					System.out.println("Solo nÃºmeros entre 1 y 3");
+					System.out.println("Solo nÃºmeros entre 1 y 6");
 				}
 			} catch (InputMismatchException e) {
 				System.out.println("Debes insertar un nÃºmero");
@@ -600,5 +656,21 @@ public class programa {
 
 		SecretKey key = new SecretKeySpec(bytes, "DES");
 		return key;
+	}
+	
+	private static void createCertificate(String commonName, String organizationalUnit, String organization, String country) throws Exception {
+		String CN  = commonName;
+		String OU = organizationalUnit;
+		String O = organization;
+		String C = country;
+		
+		int keySize = 2048;
+		int validDays = 365;
+		
+		//CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		//X500Principal datos = new X500Principal("CN="+CN+",OU="+OU+",O="+O+",C="+C);
+		//X509Certificate certificado = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(datos));
+		CertAndKeyGen certGen = new CertAndKeyGen("RSA", "SHA256WithRSA", null);
+		X509Certificate certificado = certGen.getSelfCertificate();
 	}
 }
