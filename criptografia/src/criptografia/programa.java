@@ -9,6 +9,10 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import java.security.cert.CertificateExpiredException;
 import javax.xml.bind.DatatypeConverter;
 
@@ -19,9 +23,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigInteger;
+import java.net.Socket;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -35,6 +41,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -73,6 +80,7 @@ public class programa {
 		boolean salirDES = false;
 		boolean salirPass = false;
 		boolean salirCertificado = false;
+		boolean salirTLS = false;
 		int opcion;
 
 		while (!salir) {
@@ -82,7 +90,8 @@ public class programa {
 			System.out.println("3.- Cifrado/descifrado con DES");
 			System.out.println("4.- Derivación de llaves desde contraseñas");
 			System.out.println("5.- Certificados de llave pública");
-			System.out.println("6.- Salir");
+			System.out.println("6.- Conexión TLS");
+			System.out.println("7.- Salir");
 
 			try {
 
@@ -348,10 +357,41 @@ public class programa {
 					}
 					break;
 				case 6:
+					while (!salirTLS) {
+
+						System.out.println("1.- Comprobar certificados del servidor");
+						System.out.println("2.- Salir");
+
+						try {
+
+							System.out.print("Escribe una de las opciones: ");
+							opcion = sc.nextInt();
+
+							switch (opcion) {
+							case 1:
+								System.out.print("Introduce la dirección: ");
+								String ip = sc.next();
+								System.out.print("Introduce el puerto: ");
+								int puerto = sc.nextInt();
+								web(ip, puerto);
+								break;
+							case 2:
+								salirCertificado = true;
+								break;
+							default:
+								System.out.println("Solo números entre 1 y 4");
+							}
+						} catch (InputMismatchException e) {
+							System.out.println("Debes insertar un número");
+							sc.next();
+						}
+					}
+					break;
+				case 7:
 					salir = true;
 					break;
 				default:
-					System.out.println("Solo números entre 1 y 6");
+					System.out.println("Solo números entre 1 y 2");
 				}
 			} catch (InputMismatchException e) {
 				System.out.println("Debes insertar un número");
@@ -796,5 +836,30 @@ public class programa {
 		fw.write(cert.getPublicKey().toString());
 		fw.close();
 		System.out.println(cert.getPublicKey());		
+	}
+	
+	private static void web(String direccion, int puerto) throws Exception {
+		System.setProperty("javax.net.ssl.trustStore", "clienttrust");
+
+	    SSLSocketFactory ssf = (SSLSocketFactory) SSLSocketFactory.getDefault();
+	    Socket s = ssf.createSocket(direccion, puerto);
+
+	    SSLSession session = ((SSLSocket) s).getSession();
+	    Certificate[] cchain = session.getPeerCertificates();
+	    System.out.println("Certificados usador por el servidor");
+	    for (int i = 0; i < cchain.length; i++) {
+	      System.out.println(((X509Certificate) cchain[i]).getSubjectDN());
+	    }
+	    System.out.println("Host: " + session.getPeerHost());
+	    System.out.println("Cifrador: " + session.getCipherSuite());
+	    System.out.println("Protocolo: " + session.getProtocol());
+	    System.out.println("ID: " + new BigInteger(session.getId()));
+	    System.out.println("Sesion creada en " + session.getCreationTime());
+	    System.out.println("Sesion accedida en " + session.getLastAccessedTime());
+
+	    BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+	    String x = in.readLine();
+	    System.out.println(x);
+	    in.close();
 	}
 }
