@@ -341,7 +341,9 @@ public class programa {
 							case 3:
 								System.out.print("Introduce el certificado: ");
 								String certName2 = sc.next();
+								System.out.println("Exportando llave pública...");
 								exportarPublicKey(certName2);
+								System.out.println("Llave 'llavePublica.dat' exportada...");
 								break;
 							case 4:
 								salirCertificado = true;
@@ -376,7 +378,7 @@ public class programa {
 								web(ip, puerto);
 								break;
 							case 2:
-								salirCertificado = true;
+								salirTLS = true;
 								break;
 							default:
 								System.out.println("Solo números entre 1 y 4");
